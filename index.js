@@ -31,7 +31,13 @@ const collectionRef = db.collection("recruitmentForms");
 app.post("/apply", async (req, res) => {
   try {
     const formData = req.body;
-    const newDoc = await collectionRef.add(formData);
+
+    // Add timestamp along with form data
+    const newDoc = await collectionRef.add({
+      ...formData,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
     res.status(201).send({ id: newDoc.id, message: "Form submitted!" });
   } catch (err) {
     res.status(500).send({ error: err.message });
