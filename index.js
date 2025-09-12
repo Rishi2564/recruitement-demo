@@ -30,17 +30,22 @@ const collectionRef = db.collection("recruitmentForms");
 app.post("/apply", async (req, res) => {
   try {
     const formData = req.body;
-
+    const existing = await collectionRef
+      .where("raNumber", "==", formData.raNumber)
+      .get();
+    if (!existing.empty) {
+      return res.status(400).send({ error: "RA Number already exists!" });
+    }
     const newDoc = await collectionRef.add({
       ...formData,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-
     res.status(201).send({ id: newDoc.id, message: "Form submitted!" });
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
+
 
 app.get("/applications", async (req, res) => {
   try {
