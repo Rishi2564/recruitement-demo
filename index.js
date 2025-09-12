@@ -27,12 +27,10 @@ admin.initializeApp({
 const db = admin.firestore();
 const collectionRef = db.collection("recruitmentForms");
 
-// POST API → Save form data
 app.post("/apply", async (req, res) => {
   try {
     const formData = req.body;
 
-    // Add timestamp along with form data
     const newDoc = await collectionRef.add({
       ...formData,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
@@ -44,16 +42,26 @@ app.post("/apply", async (req, res) => {
   }
 });
 
-// GET API → Fetch all form submissions
 app.get("/applications", async (req, res) => {
   try {
-    const snapshot = await collectionRef.get();
-    const forms = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    res.send(forms);
+    const snapshot = await collectionRef.orderBy("createdAt", "desc").get();
+    const forms = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt
+          ? data.createdAt.toDate().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+          : null
+      };
+    });
+
+    res.status(200).send(forms);
   } catch (err) {
     res.status(500).send({ error: err.message });
   }
 });
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
