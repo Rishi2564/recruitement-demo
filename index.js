@@ -69,6 +69,25 @@ app.get("/applications", async (req, res) => {
     res.status(500).send({ error: err.message });
   }
 });
+// DELETE application by raNumber
+app.delete("/remove/:raNumber", async (req, res) => {
+  console.log("Hit delete route:", req.params.raNumber);
+  try {
+    const { raNumber } = req.params;
+    const docRef = collectionRef.doc(raNumber);
+    const doc = await docRef.get();
+     console.log("Firestore doc exists?", doc.exists);
+    if (!doc.exists) {
+      return res.status(404).send({ error: "Application not found!" });
+    }
+
+    await docRef.delete();
+    res.status(200).send({ message: `Application with RA Number ${raNumber} deleted successfully!` });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
+});
+
 
 
 const PORT = process.env.PORT || 5000;
